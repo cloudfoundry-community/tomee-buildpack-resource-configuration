@@ -1,0 +1,14 @@
+### Exclude resources
+/target/
+/bin/
+/.idea/
+/.gradle/
+/build/
+/out/
+/.*/
+*.iml
+*.class
+.*
+
+### Exceptions
+!.gitignore

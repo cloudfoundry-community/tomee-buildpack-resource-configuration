@@ -1,0 +1,6 @@
+org.cloudfoundry.reconfiguration.tomee.provider.MySqlProperiesProvider
+org.cloudfoundry.reconfiguration.tomee.provider.MariaDbPropertiesProvider
+org.cloudfoundry.reconfiguration.tomee.provider.PostgreSqlProperiesProvider
+org.cloudfoundry.reconfiguration.tomee.provider.SqlServerPropertiesProvider
+org.cloudfoundry.reconfiguration.tomee.provider.DB2PropertiesProvider
+org.cloudfoundry.reconfiguration.tomee.provider.OraclePropertiesProvider
