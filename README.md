@@ -1,0 +1,1 @@
+# tomee-buildpack-resource-configuration
