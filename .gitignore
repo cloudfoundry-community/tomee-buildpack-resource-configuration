@@ -1,0 +1,13 @@
+### Exclude resources
+/target/
+/bin/
+/.idea/
+/build/
+/out/
+/.*/
+*.iml
+*.class
+.*
+
+### Exceptions
+!.gitignore
