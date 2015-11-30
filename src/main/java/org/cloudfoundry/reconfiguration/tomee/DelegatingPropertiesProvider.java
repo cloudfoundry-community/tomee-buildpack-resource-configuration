@@ -21,7 +21,7 @@ import org.cloudfoundry.reconfiguration.tomee.spi.PropertiesProvider;
 import org.springframework.cloud.Cloud;
 import org.springframework.cloud.CloudFactory;
 import org.springframework.cloud.service.ServiceInfo;
-
+import org.springframework.cloud.service.common.RelationalServiceInfo;
 import java.util.Collection;
 import java.util.Properties;
 import java.util.ServiceLoader;
@@ -39,6 +39,7 @@ import java.util.logging.Logger;
  */
 public final class DelegatingPropertiesProvider implements PropertiesResourceProvider {
     private static final Logger logger = Logger.getLogger(DelegatingPropertiesProvider.class.getName());
+    private static final String JDBC_PREFIX = "jdbc/";
     private static final Object monitor = new Object();
     private static volatile Cloud cloud;
 
@@ -82,24 +83,28 @@ public final class DelegatingPropertiesProvider implements PropertiesResourcePro
             throw new ConfigurationException("The serviceId is null.");
         }
 
-        final ServiceInfo serviceInfo = getBoundService(serviceId);
+        final ServiceInfo serviceInfo = getBoundService();
         final PropertiesProvider propertiesProvider = getPropertiesProvider(serviceInfo);
         return propertiesProvider.provide(serviceInfo, properties);
     }
 
-    private ServiceInfo getBoundService(String serviceId) {
+    private ServiceInfo getBoundService() {
         final Cloud cloud = getCloudInstance();
+        String cfServiceId = extractServiceId();
         final Collection<ServiceInfo> serviceInfos = cloud.getServiceInfos();
 
         for (ServiceInfo serviceInfo : serviceInfos) {
-            if (serviceId.equals(serviceInfo.getId())) {
+            if (serviceInfo instanceof RelationalServiceInfo) {
+                cfServiceId = cfServiceId.substring(JDBC_PREFIX.length());
+            }
+            if (cfServiceId.equals(serviceInfo.getId())) {
                 if (logger.isLoggable(Level.FINE)) {
-                    logger.fine("Found matching ServiceInfo for serviceId " + serviceId + ": " + serviceInfo);
+                    logger.fine("Found matching ServiceInfo for serviceId " + cfServiceId + ": " + serviceInfo);
                 }
                 return serviceInfo;
             }
         }
-        throw new ConfigurationException("Cannot find ServiceInfo for serviceId: " + serviceId);
+        throw new ConfigurationException("Cannot find ServiceInfo for serviceId: " + cfServiceId);
     }
 
     private PropertiesProvider getPropertiesProvider(ServiceInfo serviceInfo) {
@@ -126,4 +131,10 @@ public final class DelegatingPropertiesProvider implements PropertiesResourcePro
         }
         return cloud;
     }
+
+    private String extractServiceId() {
+        final String contextPath = (String) properties.remove("contextPath");
+        return serviceId.substring(contextPath.length() + 1);
+    }
+
 }

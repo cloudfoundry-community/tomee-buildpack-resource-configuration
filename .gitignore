@@ -2,7 +2,6 @@
 /target/
 /bin/
 /.idea/
-/.gradle/
 /build/
 /out/
 /.*/
