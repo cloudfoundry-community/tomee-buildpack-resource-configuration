@@ -1,1 +1,2 @@
 org.cloudfoundry.reconfiguration.tomee.dummy.DummyPropertiesProvider
+org.cloudfoundry.reconfiguration.tomee.dummy.JdbcPropertiesProvider

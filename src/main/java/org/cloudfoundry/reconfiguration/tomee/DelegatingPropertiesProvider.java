@@ -21,7 +21,7 @@ import org.cloudfoundry.reconfiguration.tomee.spi.PropertiesProvider;
 import org.springframework.cloud.Cloud;
 import org.springframework.cloud.CloudFactory;
 import org.springframework.cloud.service.ServiceInfo;
-import org.springframework.cloud.service.common.RelationalServiceInfo;
+
 import java.util.Collection;
 import java.util.Properties;
 import java.util.ServiceLoader;
@@ -39,12 +39,15 @@ import java.util.logging.Logger;
  */
 public final class DelegatingPropertiesProvider implements PropertiesResourceProvider {
     private static final Logger logger = Logger.getLogger(DelegatingPropertiesProvider.class.getName());
-    private static final String JDBC_PREFIX = "jdbc/";
     private static final Object monitor = new Object();
+
+    static final String PREFIX_JDBC = "jdbc/";
+    static final String PROPERTY_CONTEXT_PATH = "contextPath";
+
     private static volatile Cloud cloud;
 
     /**
-     * ServiceId of the service to be configured. The serviceId is set by OpenEJB
+     * TomEE service id of the service to be configured. The serviceId is set by OpenEJB
      * <p>
      * NOTE: The field name must be "serviceId" because that's the name expected by OpenEJB
      * </p>
@@ -89,14 +92,10 @@ public final class DelegatingPropertiesProvider implements PropertiesResourcePro
     }
 
     private ServiceInfo getBoundService() {
-        final Cloud cloud = getCloudInstance();
-        String cfServiceId = extractServiceId();
-        final Collection<ServiceInfo> serviceInfos = cloud.getServiceInfos();
+        final Collection<ServiceInfo> serviceInfos = getCloudInstance().getServiceInfos();
+        final String cfServiceId = extractCloudFoundryServiceId();
 
         for (ServiceInfo serviceInfo : serviceInfos) {
-            if (serviceInfo instanceof RelationalServiceInfo) {
-                cfServiceId = cfServiceId.substring(JDBC_PREFIX.length());
-            }
             if (cfServiceId.equals(serviceInfo.getId())) {
                 if (logger.isLoggable(Level.FINE)) {
                     logger.fine("Found matching ServiceInfo for serviceId " + cfServiceId + ": " + serviceInfo);
@@ -105,6 +104,43 @@ public final class DelegatingPropertiesProvider implements PropertiesResourcePro
             }
         }
         throw new ConfigurationException("Cannot find ServiceInfo for serviceId: " + cfServiceId);
+    }
+
+    private String extractCloudFoundryServiceId() {
+        String cfServiceId = removeContextRootFromServiceId();
+        cfServiceId = removeServicePrefix(cfServiceId);
+
+        if (logger.isLoggable(Level.FINE)) {
+            logger.fine("Extracted serviceId \"" + cfServiceId + "\" from " + "+\"" + serviceId + "\"");
+        }
+
+        return cfServiceId;
+    }
+
+    private String removeContextRootFromServiceId() {
+        final String contextPath = properties.remove(PROPERTY_CONTEXT_PATH) + "/";
+        String cfServiceId = serviceId;
+        if (cfServiceId.startsWith(contextPath)) {
+            cfServiceId = serviceId.substring(contextPath.length());
+        }
+
+        return cfServiceId;
+    }
+
+    /**
+     * Strip the prefix (jdbc/, jmx/, mail/, etc) from the serviceId
+     * <p>
+     * For now strip only the jdbc prefix, but here should come the code
+     * to strip other prefixes when support for other services is implemented.
+     */
+    private String removeServicePrefix(String cfServiceId) {
+        String serviceIdWithoutPrefix = cfServiceId;
+
+        if (serviceIdWithoutPrefix.startsWith(PREFIX_JDBC)) {
+            serviceIdWithoutPrefix = serviceIdWithoutPrefix.substring(PREFIX_JDBC.length());
+        }
+
+        return serviceIdWithoutPrefix;
     }
 
     private PropertiesProvider getPropertiesProvider(ServiceInfo serviceInfo) {
@@ -130,11 +166,6 @@ public final class DelegatingPropertiesProvider implements PropertiesResourcePro
             }
         }
         return cloud;
-    }
-
-    private String extractServiceId() {
-        final String contextPath = (String) properties.remove("contextPath");
-        return serviceId.substring(contextPath.length() + 1);
     }
 
 }

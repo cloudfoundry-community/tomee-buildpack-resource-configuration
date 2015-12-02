@@ -42,6 +42,7 @@ public class DummyCloudConnector implements CloudConnector {
     public List<ServiceInfo> getServiceInfos() {
         List<ServiceInfo> availableServices = new ArrayList<>(2);
         availableServices.add(new DummyServiceInfo());
+        availableServices.add(new JdbcServiceInfo());
         availableServices.add(new ServiceInfoWithoutPropertiesProvider());
         return availableServices;
     }

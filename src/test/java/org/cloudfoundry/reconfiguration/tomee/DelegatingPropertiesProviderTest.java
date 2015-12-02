@@ -17,6 +17,7 @@
 package org.cloudfoundry.reconfiguration.tomee;
 
 import org.cloudfoundry.reconfiguration.tomee.dummy.DummyServiceInfo;
+import org.cloudfoundry.reconfiguration.tomee.dummy.JdbcServiceInfo;
 import org.cloudfoundry.reconfiguration.tomee.dummy.ServiceInfoWithoutPropertiesProvider;
 import org.junit.Assert;
 import org.junit.Before;
@@ -27,11 +28,16 @@ import java.util.Properties;
 
 public class DelegatingPropertiesProviderTest {
     private static final String NO_SUCH_SERVICE_INFO = "no-such-service-info";
+    private static final String DEFAULT_CONTEXT_ROOT = "ROOT";
     private DelegatingPropertiesProvider propertiesProvider;
+    private Properties defaultProperties;
+
 
     @Before
     public void setUp() {
         propertiesProvider = new DelegatingPropertiesProvider();
+        defaultProperties = new Properties();
+        defaultProperties.put(DelegatingPropertiesProvider.PROPERTY_CONTEXT_PATH, DEFAULT_CONTEXT_ROOT);
     }
 
     @Test(expected = ConfigurationException.class)
@@ -43,21 +49,29 @@ public class DelegatingPropertiesProviderTest {
     @Test(expected = ConfigurationException.class)
     public void testProvidesWithNoServiceInfoWithTheProvidedId() throws Exception {
         propertiesProvider.setServiceId(NO_SUCH_SERVICE_INFO);
-        propertiesProvider.setProperties(new Properties());
+        propertiesProvider.setProperties(defaultProperties);
         propertiesProvider.provides();
     }
 
     @Test(expected = ConfigurationException.class)
     public void testProvidesWithNoSuitablePropertiesProvider() throws Exception {
         propertiesProvider.setServiceId(ServiceInfoWithoutPropertiesProvider.class.getName());
-        propertiesProvider.setProperties(new Properties());
+        propertiesProvider.setProperties(defaultProperties);
         propertiesProvider.provides();
     }
 
     @Test
+    public void testProvideJdbcProperties() throws Exception {
+        propertiesProvider.setServiceId(DEFAULT_CONTEXT_ROOT + "/" + DelegatingPropertiesProvider.PREFIX_JDBC + JdbcServiceInfo.ID);
+        propertiesProvider.setProperties(defaultProperties);
+        Properties properties = propertiesProvider.provides();
+        Assert.assertEquals(JdbcServiceInfo.ID, properties.getProperty(JdbcServiceInfo.CONFIG_KEY));
+    }
+
+    @Test
     public void testProvide() throws Exception {
-        propertiesProvider.setServiceId(DummyServiceInfo.class.getName());
-        propertiesProvider.setProperties(new Properties());
+        propertiesProvider.setServiceId(DEFAULT_CONTEXT_ROOT + "/" + DummyServiceInfo.class.getName());
+        propertiesProvider.setProperties(defaultProperties);
         Properties properties = propertiesProvider.provides();
         Assert.assertEquals(DummyServiceInfo.CONFIG_VALUE, properties.getProperty(DummyServiceInfo.CONFIG_KEY));
     }
