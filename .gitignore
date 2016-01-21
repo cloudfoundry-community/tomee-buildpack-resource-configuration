@@ -8,6 +8,7 @@
 *.iml
 *.class
 .*
+dependency-reduced-pom.xml
 
 ### Exceptions
 !.gitignore
