@@ -1,18 +1,18 @@
 /*
-* Copyright 2015 the original author or authors.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*      http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright 2013-2016 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.cloudfoundry.reconfiguration.tomee.provider;
 
@@ -26,6 +26,7 @@ import java.util.Properties;
 
 
 public abstract class RelationalServicePropertiesProvider implements PropertiesProvider {
+
     /**
      * JDBC driver class
      */
@@ -35,11 +36,6 @@ public abstract class RelationalServicePropertiesProvider implements PropertiesP
      * JDBC connection URL
      */
     protected static final String PROPERTY_JDBC_URL = "JdbcUrl";
-
-    /**
-     * User name
-     */
-    protected static final String PROPERTY_USER_NAME = "UserName";
 
     /**
      * Password
@@ -52,21 +48,32 @@ public abstract class RelationalServicePropertiesProvider implements PropertiesP
     protected static final String PROPERTY_PASSWORD_CIPHER = "PasswordCipher";
 
     /**
-     * The SQL query that will be used to validate connections from this pool
-     * before returning them to the caller. If specified, this query MUST be an
-     * SQL SELECT statement that returns at least one row.
+     * If true connections will be validated before being returned from the pool. If the validation fails, the connection is destroyed, and a new connection will be retrieved from the pool (and
+     * validated). <p/> NOTE - for a true value to have any effect, the ValidationQuery parameter must be set.
+     */
+    protected static final String PROPERTY_TEST_ON_BORROW = "TestOnBorrow";
+
+    /**
+     * User name
+     */
+    protected static final String PROPERTY_USER_NAME = "UserName";
+
+    /**
+     * The SQL query that will be used to validate connections from this pool before returning them to the caller. If specified, this query MUST be an SQL SELECT statement that returns at least one
+     * row.
      */
     protected static final String PROPERTY_VALIDATION_QUERY = "ValidationQuery";
 
-    /**
-     * If true connections will be validated before being returned from the
-     * pool. If the validation fails, the connection is destroyed, and a new
-     * connection will be retrieved from the pool (and validated).
-     * <p/>
-     * NOTE - for a true value to have any effect, the ValidationQuery parameter
-     * must be set.
-     */
-    protected static final String PROPERTY_TEST_ON_BORROW = "TestOnBorrow";
+    @Override
+    public boolean canProvide(ServiceInfo serviceInfo) {
+        boolean provides = serviceInfo instanceof RelationalServiceInfo;
+        if (provides) {
+            final RelationalServiceInfo relationalServiceInfo = (RelationalServiceInfo) serviceInfo;
+            final String jdbcSchema = getJdbcSchema();
+            provides = relationalServiceInfo.getJdbcUrl().startsWith(jdbcSchema);
+        }
+        return provides;
+    }
 
     @Override
     public final Properties provide(ServiceInfo serviceInfo, Properties defaultConfiguration) {
@@ -85,16 +92,7 @@ public abstract class RelationalServicePropertiesProvider implements PropertiesP
         return defaultConfiguration;
     }
 
-    @Override
-    public boolean canProvide(ServiceInfo serviceInfo) {
-        boolean provides = serviceInfo instanceof RelationalServiceInfo;
-        if (provides) {
-            final RelationalServiceInfo relationalServiceInfo = (RelationalServiceInfo) serviceInfo;
-            final String jdbcSchema = getJdbcSchema();
-            provides = relationalServiceInfo.getJdbcUrl().startsWith(jdbcSchema);
-        }
-        return provides;
-    }
+    protected abstract void configure(RelationalServiceInfo serviceInfo, Properties properties);
 
     protected String getJdbcSchema() {
         /**
@@ -102,6 +100,4 @@ public abstract class RelationalServicePropertiesProvider implements PropertiesP
          */
         return null;
     }
-
-    protected abstract void configure(RelationalServiceInfo serviceInfo, Properties properties);
 }

@@ -1,18 +1,18 @@
 /*
-* Copyright 2015 the original author or authors.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*      http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright 2013-2016 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.cloudfoundry.reconfiguration.tomee;
 
@@ -29,45 +29,32 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * {@link PropertiesResourceProvider} implementation that delegates the resource configuration to a suitable
- * {@link PropertiesProvider} implementation. The <code>PropertiesProvider</code> implementations are discovered
- * through the {@link java.util.ServiceLoader} mechanism.
+ * {@link PropertiesResourceProvider} implementation that delegates the resource configuration to a suitable {@link PropertiesProvider} implementation. The <code>PropertiesProvider</code>
+ * implementations are discovered through the {@link java.util.ServiceLoader} mechanism.
  *
  * @see ServiceLoader
  * @see PropertiesProvider
  * @see PropertiesResourceProvider
  */
 public final class DelegatingPropertiesProvider implements PropertiesResourceProvider {
-    private static final Logger logger = Logger.getLogger(DelegatingPropertiesProvider.class.getName());
-    private static final Object monitor = new Object();
 
     static final String PREFIX_JDBC = "jdbc/";
+
+    private static final Logger logger = Logger.getLogger(DelegatingPropertiesProvider.class.getName());
+
+    private static final Object monitor = new Object();
 
     private static volatile Cloud cloud;
 
     /**
-     * TomEE service id of the service to be configured. The serviceId is set by OpenEJB
-     * <p>
-     * NOTE: The field name must be "serviceId" because that's the name expected by OpenEJB
-     * </p>
-     */
-    private String serviceId;
-
-    /**
-     * The default configuration of the service provider with merged overrides. Set by OpenEJB
-     * <p>
-     * NOTE: The field name must be "properties" because that's the name expected by OpenEJB
-     * </p>
+     * The default configuration of the service provider with merged overrides. Set by OpenEJB <p> NOTE: The field name must be "properties" because that's the name expected by OpenEJB </p>
      */
     private Properties properties;
 
-    public void setServiceId(String serviceId) {
-        this.serviceId = serviceId;
-    }
-
-    public void setProperties(Properties properties) {
-        this.properties = properties;
-    }
+    /**
+     * TomEE service id of the service to be configured. The serviceId is set by OpenEJB <p> NOTE: The field name must be "serviceId" because that's the name expected by OpenEJB </p>
+     */
+    private String serviceId;
 
     /**
      * Provide configuration for a TomEE resource.
@@ -90,19 +77,23 @@ public final class DelegatingPropertiesProvider implements PropertiesResourcePro
         return propertiesProvider.provide(serviceInfo, properties);
     }
 
-    private ServiceInfo getBoundService() {
-        final Collection<ServiceInfo> serviceInfos = getCloudInstance().getServiceInfos();
-        final String cfServiceId = extractCloudFoundryServiceId();
+    public void setProperties(Properties properties) {
+        this.properties = properties;
+    }
 
-        for (ServiceInfo serviceInfo : serviceInfos) {
-            if (cfServiceId.equals(serviceInfo.getId())) {
-                if (logger.isLoggable(Level.FINE)) {
-                    logger.fine("Found matching ServiceInfo for serviceId " + cfServiceId + ": " + serviceInfo);
+    public void setServiceId(String serviceId) {
+        this.serviceId = serviceId;
+    }
+
+    private static Cloud getCloudInstance() {
+        if (null == cloud) {
+            synchronized (monitor) {
+                if (null == cloud) {
+                    cloud = new CloudFactory().getCloud();
                 }
-                return serviceInfo;
             }
         }
-        throw new ConfigurationException("Cannot find ServiceInfo for serviceId: " + cfServiceId);
+        return cloud;
     }
 
     private String extractCloudFoundryServiceId() {
@@ -116,30 +107,19 @@ public final class DelegatingPropertiesProvider implements PropertiesResourcePro
         return cfServiceId;
     }
 
-    private String removeContextRootFromServiceId() {
-        String cfServiceId = serviceId;
-        int index = cfServiceId.indexOf('/');
-        if (index != -1) {
-            cfServiceId = serviceId.substring(index + 1);
+    private ServiceInfo getBoundService() {
+        final Collection<ServiceInfo> serviceInfos = getCloudInstance().getServiceInfos();
+        final String cfServiceId = extractCloudFoundryServiceId();
+
+        for (ServiceInfo serviceInfo : serviceInfos) {
+            if (cfServiceId.equals(serviceInfo.getId())) {
+                if (logger.isLoggable(Level.FINE)) {
+                    logger.fine("Found matching ServiceInfo for serviceId " + cfServiceId + ": " + serviceInfo);
+                }
+                return serviceInfo;
+            }
         }
-
-        return cfServiceId;
-    }
-
-    /**
-     * Strip the prefix (jdbc/, jmx/, mail/, etc) from the serviceId
-     * <p>
-     * For now strip only the jdbc prefix, but here should come the code
-     * to strip other prefixes when support for other services is implemented.
-     */
-    private String removeServicePrefix(String cfServiceId) {
-        String serviceIdWithoutPrefix = cfServiceId;
-
-        if (serviceIdWithoutPrefix.startsWith(PREFIX_JDBC)) {
-            serviceIdWithoutPrefix = serviceIdWithoutPrefix.substring(PREFIX_JDBC.length());
-        }
-
-        return serviceIdWithoutPrefix;
+        throw new ConfigurationException("Cannot find ServiceInfo for serviceId: " + cfServiceId);
     }
 
     private PropertiesProvider getPropertiesProvider(ServiceInfo serviceInfo) {
@@ -156,15 +136,28 @@ public final class DelegatingPropertiesProvider implements PropertiesResourcePro
         throw new ConfigurationException("Cannot find suitable PropertiesProvider for serviceId " + serviceId + ": " + serviceInfo);
     }
 
-    private static Cloud getCloudInstance() {
-        if (null == cloud) {
-            synchronized (monitor) {
-                if (null == cloud) {
-                    cloud = new CloudFactory().getCloud();
-                }
-            }
+    private String removeContextRootFromServiceId() {
+        String cfServiceId = serviceId;
+        int index = cfServiceId.indexOf('/');
+        if (index != -1) {
+            cfServiceId = serviceId.substring(index + 1);
         }
-        return cloud;
+
+        return cfServiceId;
+    }
+
+    /**
+     * Strip the prefix (jdbc/, jmx/, mail/, etc) from the serviceId <p> For now strip only the jdbc prefix, but here should come the code to strip other prefixes when support for other services is
+     * implemented.
+     */
+    private String removeServicePrefix(String cfServiceId) {
+        String serviceIdWithoutPrefix = cfServiceId;
+
+        if (serviceIdWithoutPrefix.startsWith(PREFIX_JDBC)) {
+            serviceIdWithoutPrefix = serviceIdWithoutPrefix.substring(PREFIX_JDBC.length());
+        }
+
+        return serviceIdWithoutPrefix;
     }
 
 }

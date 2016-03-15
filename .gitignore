@@ -1,14 +1,5 @@
-### Exclude resources
-/target/
-/bin/
-/.idea/
-/build/
-/out/
-/.*/
-*.iml
-*.class
-.*
+.idea/libraries
+.idea/tasks.xml
+.idea/workspace.xml
+target
 dependency-reduced-pom.xml
-
-### Exceptions
-!.gitignore
