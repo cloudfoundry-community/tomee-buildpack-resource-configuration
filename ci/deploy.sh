@@ -1,7 +1,6 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 set -e
 
-pushd tomee-buildpack-resource-configuration
-  ./mvnw -q -Dmaven.test.skip=true deploy
-popd
+cd tomee-buildpack-resource-configuration
+./mvnw -q -Dmaven.test.skip=true deploy
