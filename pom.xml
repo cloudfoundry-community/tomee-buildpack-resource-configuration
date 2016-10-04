@@ -24,7 +24,7 @@
 
     <groupId>org.cloudfoundry</groupId>
     <artifactId>tomee-resource-configuration</artifactId>
-    <version>1.1.0.BUILD-SNAPSHOT</version>
+    <version>1.2.0.BUILD-SNAPSHOT</version>
     <name>TomEE Buildpack Resource Configuration</name>
 
     <properties>
