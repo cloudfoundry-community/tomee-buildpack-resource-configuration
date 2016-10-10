@@ -16,6 +16,7 @@
 
 package org.cloudfoundry.reconfiguration.tomee.provider;
 
+import org.cloudfoundry.reconfiguration.tomee.ConfigurationException;
 import org.springframework.cloud.service.common.RelationalServiceInfo;
 
 import java.util.Properties;
@@ -23,7 +24,8 @@ import java.util.Properties;
 
 public final class MySqlProperiesProvider extends RelationalServicePropertiesProvider {
 
-    private static final String JDBC_DRIVER_CLASS = "com.mysql.jdbc.Driver";
+    private static final String[] JDBC_DRIVER_CLASSES =
+            new String[] { "org.mariadb.jdbc.Driver", "com.mysql.jdbc.Driver" };
 
     private static final String JDBC_SCHEMA = "jdbc:mysql:";
 
@@ -31,12 +33,23 @@ public final class MySqlProperiesProvider extends RelationalServicePropertiesPro
 
     @Override
     protected void configure(RelationalServiceInfo serviceInfo, Properties properties) {
-        properties.setProperty(PROPERTY_JDBC_DRIVER, JDBC_DRIVER_CLASS);
+        properties.setProperty(PROPERTY_JDBC_DRIVER, getJdbcDriverClass(serviceInfo));
         properties.setProperty(PROPERTY_VALIDATION_QUERY, VALIDATION_QUERY);
     }
 
     @Override
     protected String getJdbcSchema() {
         return JDBC_SCHEMA;
+    }
+
+    private String getJdbcDriverClass(RelationalServiceInfo serviceInfo) {
+        for (String driver : JDBC_DRIVER_CLASSES) {
+            try {
+                Thread.currentThread().getContextClassLoader().loadClass(driver);
+                return driver;
+            } catch (ClassNotFoundException ignore) {
+            }
+        }
+        throw new ConfigurationException("Cannot find suitable driver for " + serviceInfo);
     }
 }
