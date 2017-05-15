@@ -29,8 +29,8 @@
 
     <properties>
         <junit.version>4.12</junit.version>
-        <spring-cloud.version>1.2.0.RELEASE</spring-cloud.version>
-        <openejb-api.version>4.7.2</openejb-api.version>
+        <spring-cloud.version>1.2.4.RELEASE</spring-cloud.version>
+        <openejb-api.version>4.7.4</openejb-api.version>
     </properties>
 
     <dependencies>
