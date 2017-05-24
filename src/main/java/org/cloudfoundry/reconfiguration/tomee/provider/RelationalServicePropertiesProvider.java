@@ -48,8 +48,10 @@ public abstract class RelationalServicePropertiesProvider implements PropertiesP
     protected static final String PROPERTY_PASSWORD_CIPHER = "PasswordCipher";
 
     /**
-     * If true connections will be validated before being returned from the pool. If the validation fails, the connection is destroyed, and a new connection will be retrieved from the pool (and
-     * validated). <p/> NOTE - for a true value to have any effect, the ValidationQuery parameter must be set.
+     * If true connections will be validated before being returned from the pool.
+     * If the validation fails, the connection is destroyed, and a new connection
+     * will be retrieved from the pool (and validated).
+     * <p/> NOTE - for a true value to have any effect, the ValidationQuery parameter must be set.
      */
     protected static final String PROPERTY_TEST_ON_BORROW = "TestOnBorrow";
 
@@ -59,10 +61,44 @@ public abstract class RelationalServicePropertiesProvider implements PropertiesP
     protected static final String PROPERTY_USER_NAME = "UserName";
 
     /**
-     * The SQL query that will be used to validate connections from this pool before returning them to the caller. If specified, this query MUST be an SQL SELECT statement that returns at least one
-     * row.
+     * The SQL query that will be used to validate connections from this pool
+     * before returning them to the caller. If specified, this query MUST be
+     * an SQL SELECT statement that returns at least one row.
      */
     protected static final String PROPERTY_VALIDATION_QUERY = "ValidationQuery";
+
+    /**
+     * The maximum number of active connections that can be allocated from the
+     * connection pool at the same time. A negative number means no limit.
+     */
+    protected static final String PROPERTY_MAX_ACTIVE = "maxActive";
+
+    /**
+     * The maximum number of connections that can remain idle in the
+     * connection pool, without extra ones being released.
+     * A negative number means no limit.
+     */
+    protected static final String PROPERTY_MAX_IDLE = "maxIdle";
+
+    /**
+     * The minimum number of connections that can remain idle in the
+     * connection pool, without extra ones being created.
+     * Zero means - create none.
+     */
+    protected static final String PROPERTY_MIN_IDLE = "minIdle";
+
+    /**
+     * The size of the connection pool to reach when creating the datasource.
+     */
+    protected static final String PROPERTY_INITIAL_SIZE = "initialSize";
+
+    /**
+     * The maximum number of time that the connection pool will wait
+     * for a connection to be returned before throwing an exception,
+     * in case there are no connections in the pool.
+     * -1 means to wait indefinitely.
+     */
+    protected static final String PROPERTY_MAX_WAIT = "maxWait";
 
     @Override
     public boolean canProvide(ServiceInfo serviceInfo) {
@@ -88,6 +124,8 @@ public abstract class RelationalServicePropertiesProvider implements PropertiesP
         defaultConfiguration.setProperty(PROPERTY_TEST_ON_BORROW, "true");
         defaultConfiguration.put(PROPERTY_PASSWORD_CIPHER, "PlainText");
 
+        configureConnectionPool(defaultConfiguration);
+
         configure(serviceConfig, defaultConfiguration);
         return defaultConfiguration;
     }
@@ -99,5 +137,15 @@ public abstract class RelationalServicePropertiesProvider implements PropertiesP
          * Providing default behaviour in case canProvide() is overridden
          */
         return null;
+    }
+
+    private void configureConnectionPool(Properties defaultConfiguration) {
+        if (defaultConfiguration.getProperty(PROPERTY_MAX_ACTIVE) == null) {
+            defaultConfiguration.setProperty(PROPERTY_MAX_ACTIVE, "2");
+            defaultConfiguration.setProperty(PROPERTY_MAX_IDLE, "2");
+            defaultConfiguration.setProperty(PROPERTY_MIN_IDLE, "0");
+            defaultConfiguration.setProperty(PROPERTY_INITIAL_SIZE, "0");
+            defaultConfiguration.setProperty(PROPERTY_MAX_WAIT, "30000");
+        }
     }
 }
