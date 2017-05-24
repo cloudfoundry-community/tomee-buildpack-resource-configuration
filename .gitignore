@@ -3,3 +3,6 @@
 .idea/workspace.xml
 target
 dependency-reduced-pom.xml
+.settings/
+.project
+.classpath
