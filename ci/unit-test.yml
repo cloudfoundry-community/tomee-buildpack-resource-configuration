@@ -10,5 +10,8 @@ image_resource:
 inputs:
 - name: tomee-buildpack-resource-configuration
 
+caches:
+- path: m2
+
 run:
   path: tomee-buildpack-resource-configuration/ci/unit-test.sh
