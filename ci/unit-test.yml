@@ -11,7 +11,7 @@ inputs:
 - name: tomee-buildpack-resource-configuration
 
 caches:
-- path: m2
+- path: maven
 
 run:
   path: tomee-buildpack-resource-configuration/ci/unit-test.sh
