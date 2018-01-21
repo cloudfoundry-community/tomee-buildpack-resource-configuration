@@ -29,7 +29,7 @@
 
     <properties>
         <junit.version>4.12</junit.version>
-        <spring-cloud.version>1.2.4.RELEASE</spring-cloud.version>
+        <spring-cloud.version>1.2.5.RELEASE</spring-cloud.version>
         <openejb-api.version>4.7.4</openejb-api.version>
     </properties>
 
@@ -50,12 +50,15 @@
             <artifactId>spring-cloud-core</artifactId>
             <version>${spring-cloud.version}</version>
         </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
+
+
     </dependencies>
 
     <build>
