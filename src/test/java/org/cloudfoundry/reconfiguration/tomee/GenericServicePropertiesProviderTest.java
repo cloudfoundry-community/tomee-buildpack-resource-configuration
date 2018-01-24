@@ -18,9 +18,15 @@ package org.cloudfoundry.reconfiguration.tomee;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.springframework.cloud.util.EnvironmentAccessor;
+import org.springframework.util.ReflectionUtils;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.lang.reflect.Field;
 import java.util.Properties;
 import java.util.Scanner;
 
@@ -32,14 +38,23 @@ import java.util.Scanner;
 
 public class GenericServicePropertiesProviderTest {
 
+    @Mock
+    private EnvironmentAccessor env;
+
 
     @Test
     public void testCorrectPropertiesFound() throws Exception {
 
-        SettableEnvironmentAccessor settableEnv = new SettableEnvironmentAccessor();
+        MockitoAnnotations.initMocks(this);
+
         String rawJson = readTestDataFile("validGenericService.json");
-        settableEnv.setEnvValue("VCAP_SERVICES", rawJson);
-        GenericServicePropertiesProvider propertiesProvider = new GenericServicePropertiesProvider(settableEnv);
+        GenericServicePropertiesProvider propertiesProvider = new GenericServicePropertiesProvider();
+        Field envField = ReflectionUtils.findField(GenericServicePropertiesProvider.class, "environment");
+        ReflectionUtils.makeAccessible(envField);
+        ReflectionUtils.setField(envField, propertiesProvider, env);
+
+        Mockito.when(env.getEnvValue("VCAP_SERVICES")).thenReturn(rawJson);
+
 
         configureDelegatingPropertiesProvider(propertiesProvider, "someId", new Properties());
         Properties properties = propertiesProvider.provides();

@@ -29,7 +29,7 @@
 
     <properties>
         <junit.version>4.12</junit.version>
-        <spring-cloud.version>2.0.0.RELEASE</spring-cloud.version>
+        <spring-cloud.version>1.2.5.RELEASE</spring-cloud.version>
         <openejb-api.version>4.7.4</openejb-api.version>
     </properties>
 
@@ -48,8 +48,15 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-core</artifactId>
-            <version>1.2.4.RELEASE</version>
+            <version>${spring-cloud.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.springframework/spring-core -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>5.0.3.RELEASE</version>
+        </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

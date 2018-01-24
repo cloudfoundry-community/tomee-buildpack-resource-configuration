@@ -38,11 +38,6 @@ public class GenericServicePropertiesProvider implements PropertiesResourceProvi
         environment = new EnvironmentAccessor();
     }
 
-    public GenericServicePropertiesProvider(EnvironmentAccessor environment) {
-        this.environment = environment;
-        objectMapper = new ObjectMapper();
-    }
-
     /**
      * The default configuration of the service provider with merged overrides. Set by OpenEJB <p> NOTE: The field name must be "properties" because that's the name expected by OpenEJB </p>
      */
@@ -87,6 +82,7 @@ public class GenericServicePropertiesProvider implements PropertiesResourceProvi
     @SuppressWarnings("unchecked")
     private Map<String, String> getGenericServiceCredentials(CloudFoundryRawServiceData rawServiceData) {
 
+        String cfServiceId = removeContextRootFromServiceId();
         for (Map.Entry<String, List<Map<String, Object>>> entry : rawServiceData.entrySet()) {
             System.out.println(entry.getValue());
             for (Map<String, Object> serviceEntry : entry.getValue()) {
@@ -95,7 +91,7 @@ public class GenericServicePropertiesProvider implements PropertiesResourceProvi
 
                     if (credentials.containsKey("id")) {
                         String foundId = credentials.get("id");
-                        if (foundId.equalsIgnoreCase(serviceId)) {
+                        if (foundId.equalsIgnoreCase(cfServiceId)) {
                             return credentials;
                         }
                     }
@@ -105,6 +101,17 @@ public class GenericServicePropertiesProvider implements PropertiesResourceProvi
 
         throw new ConfigurationException("Could not find required service with id " + serviceId);
 
+    }
+
+    private String removeContextRootFromServiceId() {
+        String cfServiceId = serviceId;
+        if (cfServiceId != null) {
+            int index = cfServiceId.indexOf('/');
+            if (index != -1) {
+                cfServiceId = serviceId.substring(index + 1);
+            }
+        }
+        return cfServiceId;
     }
 
     private void convertToProperties (Map<String, String> serviceCredentials) {
