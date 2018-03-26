@@ -18,15 +18,11 @@ package org.cloudfoundry.reconfiguration.tomee;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.springframework.cloud.cloudfoundry.com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.cloud.util.EnvironmentAccessor;
-import org.springframework.util.ReflectionUtils;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.lang.reflect.Field;
 import java.util.Properties;
 import java.util.Scanner;
 
@@ -38,22 +34,15 @@ import java.util.Scanner;
 
 public class GenericServicePropertiesProviderTest {
 
-    @Mock
     private EnvironmentAccessor env;
 
 
     @Test
     public void testCorrectPropertiesFound() throws Exception {
 
-        MockitoAnnotations.initMocks(this);
 
-        String rawJson = readTestDataFile("validGenericService.json");
-        GenericServicePropertiesProvider propertiesProvider = new GenericServicePropertiesProvider();
-        Field envField = ReflectionUtils.findField(GenericServicePropertiesProvider.class, "environment");
-        ReflectionUtils.makeAccessible(envField);
-        ReflectionUtils.setField(envField, propertiesProvider, env);
-
-        Mockito.when(env.getEnvValue("VCAP_SERVICES")).thenReturn(rawJson);
+        GenericServicePropertiesProvider propertiesProvider =
+            new GenericServicePropertiesProvider(new TestEnvironmentAccessor(), new ObjectMapper());
 
 
         configureDelegatingPropertiesProvider(propertiesProvider, "someId", new Properties());
@@ -74,15 +63,29 @@ public class GenericServicePropertiesProviderTest {
         propertiesProvider.setProperties(properties);
     }
 
-    private String readTestDataFile(String fileName) {
-        Scanner scanner = null;
-        try {
-            Reader fileReader = new InputStreamReader(getClass().getResourceAsStream(fileName));
-            scanner = new Scanner(fileReader);
-            return scanner.useDelimiter("\\Z").next();
-        } finally {
-            if (scanner != null) {
-                scanner.close();
+
+
+    private class TestEnvironmentAccessor extends EnvironmentAccessor {
+
+        @Override
+        public String getEnvValue(String key) {
+
+            if (key.equalsIgnoreCase("VCAP_SERVICES")) {
+                return readTestDataFile("validGenericService.json");
+            }
+            return super.getEnvValue(key);
+        }
+
+        private String readTestDataFile(String fileName) {
+            Scanner scanner = null;
+            try {
+                Reader fileReader = new InputStreamReader(getClass().getResourceAsStream(fileName));
+                scanner = new Scanner(fileReader);
+                return scanner.useDelimiter("\\Z").next();
+            } finally {
+                if (scanner != null) {
+                    scanner.close();
+                }
             }
         }
     }

@@ -30,21 +30,30 @@ import java.util.Properties;
  */
 public class GenericServicePropertiesProvider implements PropertiesResourceProvider {
 
-    private ObjectMapper objectMapper;
-    private EnvironmentAccessor environment;
+    private final ObjectMapper objectMapper;
+    private final EnvironmentAccessor environment;
 
     public GenericServicePropertiesProvider() {
-        objectMapper = new ObjectMapper();
-        environment = new EnvironmentAccessor();
+        this (new EnvironmentAccessor(), new ObjectMapper());
+    }
+
+    protected GenericServicePropertiesProvider(EnvironmentAccessor environment, ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+        this.environment = environment;
     }
 
     /**
-     * The default configuration of the service provider with merged overrides. Set by OpenEJB <p> NOTE: The field name must be "properties" because that's the name expected by OpenEJB </p>
+     * The default configuration of the service provider with merged overrides.
+     * Set by OpenEJB
+     * NOTE: The field name must be "properties" because that's the name expected by OpenEJB
      */
     private Properties properties;
 
     /**
-     * TomEE service id of the service to be configured. The serviceId is set by OpenEJB <p> NOTE: The field name must be "serviceId" because that's the name expected by OpenEJB </p>
+     * TomEE service id of the service to be configured.
+     *
+     * The serviceId is set by OpenEJB
+     * NOTE: The field name must be "serviceId" because that's the name expected by OpenEJB
      */
     private String serviceId;
 
@@ -84,7 +93,6 @@ public class GenericServicePropertiesProvider implements PropertiesResourceProvi
 
         String cfServiceId = removeContextRootFromServiceId();
         for (Map.Entry<String, List<Map<String, Object>>> entry : rawServiceData.entrySet()) {
-            System.out.println(entry.getValue());
             for (Map<String, Object> serviceEntry : entry.getValue()) {
                 if (serviceEntry.containsKey("credentials")) {
                     Map<String, String> credentials = (Map<String, String>) serviceEntry.get("credentials");
@@ -114,9 +122,9 @@ public class GenericServicePropertiesProvider implements PropertiesResourceProvi
         return cfServiceId;
     }
 
-    private void convertToProperties (Map<String, String> serviceCredentials) {
+    private void convertToProperties(Map<String, String> serviceCredentials) {
 
-        for (Map.Entry <String, String> entry : serviceCredentials.entrySet()) {
+        for (Map.Entry<String, String> entry : serviceCredentials.entrySet()) {
             properties.setProperty(entry.getKey(), entry.getValue());
         }
 
