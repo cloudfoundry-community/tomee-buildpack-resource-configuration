@@ -1,0 +1,40 @@
+{
+  "p-mysql": [
+    {
+      "credentials": {
+        "hostname": "mysql-broker.local.pcfdev.io",
+        "jdbcUrl": "jdbc:mysql://mysql-broker.local.pcfdev.io:3306/cf_27100beb_c988_48d9_a8f6_2c0d5e083064?user=YYZcYWfdIgaNTLur\u0026password=iEfwR7DCiO4owj2c",
+        "name": "cf_27100beb_c988_48d9_a8f6_2c0d5e083064",
+        "password": "iEfwR7DCiO4owj2c",
+        "port": 3306,
+        "uri": "mysql://YYZcYWfdIgaNTLur:iEfwR7DCiO4owj2c@mysql-broker.local.pcfdev.io:3306/cf_27100beb_c988_48d9_a8f6_2c0d5e083064?reconnect=true",
+        "username": "YYZcYWfdIgaNTLur"
+      },
+      "label": "p-mysql",
+      "name": "my-db",
+      "plan": "512mb",
+      "provider": null,
+      "syslog_drain_url": null,
+      "tags": [
+        "mysql"
+      ],
+      "volume_mounts": []
+    }
+  ],
+  "user-provided": [
+    {
+      "credentials": {
+        "class-name": "org.cloudfoundry.test.MyType",
+        "id": "someId",
+        "includeInResources": "true",
+        "name1": "val1",
+        "name2": "val2"
+      },
+      "label": "user-provided",
+      "name": "my-test-resource",
+      "syslog_drain_url": "",
+      "tags": [],
+      "volume_mounts": []
+    }
+  ]
+}
