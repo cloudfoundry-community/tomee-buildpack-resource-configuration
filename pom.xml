@@ -28,7 +28,7 @@
     <name>TomEE Buildpack Resource Configuration</name>
 
     <properties>
-        <junit.version>4.12</junit.version>
+        <junit.version>4.13.1</junit.version>
         <spring-cloud.version>1.2.5.RELEASE</spring-cloud.version>
         <openejb-api.version>4.7.4</openejb-api.version>
     </properties>
